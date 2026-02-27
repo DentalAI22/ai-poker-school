@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Poker School
+
+**AI is beating the best. Why not train with the best?**
+
+The world's most advanced AI poker coach. Master GTO strategy across 25+ game types.
+
+## Features
+
+- **AI Coach Andrew** — Chat with an AI poker coach trained on strategies of Doyle Brunson, Phil Ivey, and modern GTO theorists
+- **Interactive Poker Table** — Play hands with real-time coaching and GTO analysis
+- **25+ Poker Variants** — From No-Limit Hold'em to Badugi, learn every game
+- **GTO Trainer** — Study preflop charts and quiz yourself on optimal play
+- **Poker History** — Timeline of poker from 1800s saloons to the AI era
+- **Tournament Tracker** — Track your tournament results and ROI
+- **Bankroll Management** — Smart bankroll recommendations and tracking
+- **Trivia** — 100+ poker trivia questions across 6 categories
+
+## Tech Stack
+
+- **Frontend:** Next.js 14+ (App Router), TypeScript, Tailwind CSS v4
+- **AI:** Anthropic Claude API (Coach Andrew)
+- **Voice:** ElevenLabs TTS
+- **Database:** Supabase (PostgreSQL + Auth)
+- **Hosting:** Vercel
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+git clone https://github.com/DentalAI22/ai-poker-school.git
+cd ai-poker-school
+npm install
+```
+
+### Environment Setup
+
+Copy `.env.example` to `.env.local` and fill in your API keys:
+
+```bash
+cp .env.example .env.local
+```
+
+Required environment variables:
+- `ANTHROPIC_API_KEY` — Get from [console.anthropic.com](https://console.anthropic.com)
+- `NEXT_PUBLIC_SUPABASE_URL` — From your Supabase project
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — From your Supabase project
+- `SUPABASE_SERVICE_ROLE_KEY` — From your Supabase project settings
+- `ELEVENLABS_API_KEY` — From [elevenlabs.io](https://elevenlabs.io)
+- `ELEVENLABS_VOICE_ID` — Default: `DXFkLCBUTmvXpp2QwZjA`
+
+### Database Setup
+
+Run the SQL in `supabase-schema.sql` in your Supabase SQL editor to create all tables.
+
+### Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+### Deploy
 
-To learn more about Next.js, take a look at the following resources:
+Deploy to Vercel:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx vercel
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+src/
+  app/           — Next.js App Router pages
+  components/    — React components
+    poker-table/ — Interactive poker table
+    coach/       — Chat interface
+    ui/          — Shared UI components
+  lib/           — Core logic
+    poker-engine.ts     — Game engine (9 variants)
+    gto-solver.ts       — GTO decision engine
+    hand-evaluator.ts   — Hand evaluation
+    range-calculator.ts — Range parsing & equity
+    icm-calculator.ts   — ICM for tournaments
+    bankroll-calculator.ts — Bankroll math
+  data/          — Static data
+    poker-variants.ts   — 25+ variant definitions
+    gto-charts.ts       — Preflop GTO charts
+    poker-history.ts    — Historical content
+    trivia-questions.ts — 100+ trivia questions
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Disclaimer
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+AI Poker School is for educational simulation purposes only. No real money wagering.
+
+## License
+
+Private — All rights reserved.
