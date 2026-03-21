@@ -186,8 +186,8 @@ export function generateCoachMessage(
   pot: number,
   position: string
 ): string {
-  if (street === 'idle') return 'Ready to play? Hit "Deal" to start a new hand!';
-  if (street === 'showdown') return 'Let\'s see who takes it down!';
+  if (street === 'idle') return "Ready to play? Hit 'Deal' to start a new hand! Remember — Stu Ungar won 3 Main Events by always being ready for the next hand.";
+  if (street === 'showdown') return "Let's see who takes it down! As Doyle Brunson says, 'The key to No Limit is to put a man to a decision for all his chips.'";
 
   const allCards = [...playerCards, ...communityCards];
   const score = evalHand(allCards);
@@ -197,18 +197,21 @@ export function generateCoachMessage(
     const r2 = RANK_VALUES[playerCards[1]?.rank] || 0;
     const isPair = r1 === r2;
     const high = Math.max(r1, r2);
-    if (isPair && high >= 10) return `Pocket ${playerCards[0].rank}s from ${position} -- premium hand. Raise it up!`;
-    if (isPair) return `Small pair from ${position}. Set-mining territory if the price is right.`;
-    if (high >= 13 && Math.min(r1, r2) >= 10) return `Strong broadway hand from ${position}. Open or 3-bet this.`;
-    if (high >= 13) return `High card from ${position}. Position matters here -- be mindful of opponents.`;
-    return `Speculative hand from ${position}. Play carefully or consider folding vs early position opens.`;
+    if (isPair && high >= 13) return `Pocket ${playerCards[0].rank}s from ${position} — this is the dream. Phil Hellmuth once said pocket Aces win themselves, but GTO says raise 2.5-3x here. Make them pay to see the flop.`;
+    if (isPair && high >= 10) return `Pocket ${playerCards[0].rank}s from ${position} — premium pair. Doug Polk's solver ranges open this from ANY position. Standard open to 2.5x.`;
+    if (isPair) return `Small pair from ${position}. Set-mining territory — you need about 15:1 implied odds. As Ivey would say, the money's in the sets.`;
+    if (high >= 13 && Math.min(r1, r2) >= 10) return `Strong broadway from ${position}. GTO opens this from every position. Negreanu loves these hands — big cards, big pots.`;
+    if (high >= 13) return `High card from ${position}. Position-dependent hand — from the button or cutoff, this is a standard open. From early position, be more cautious.`;
+    const earlyPos = ['UTG', 'UTG+1', 'MP'].includes(position);
+    if (earlyPos) return `Speculative hand from ${position}. Solvers fold this from early position at 6-max. Discipline here is what separates winning players from losing ones.`;
+    return `Speculative hand from ${position}. In late position, you might have a steal opportunity. Check the table — if it folds to you, consider an open.`;
   }
 
-  if (score >= 6_000_000) return 'Monster hand! Think about how to extract maximum value.';
-  if (score >= 4_000_000) return 'Strong hand here. Consider building the pot on this street.';
-  if (score >= 2_000_000) return 'Decent hand but vulnerable. Think about pot control or protecting equity.';
-  if (score >= 1_000_000) return `One pair with a ${pot > 100 ? 'growing' : 'small'} pot. Be cautious of overcards and draws.`;
-  return 'Not much right now. Consider if you have good drawing equity before putting more chips in.';
+  if (score >= 6_000_000) return "MONSTER! You've got a huge hand. Tom Dwan's advice: 'Think about how to get their whole stack, not just a bet.' Build the pot but don't scare them off.";
+  if (score >= 4_000_000) return "Strong made hand. Time to build the pot. GTO prefers a 66% pot bet here — you want value but also protection against draws.";
+  if (score >= 2_000_000) return `Decent hand with a ${pot > 100 ? '$' + pot : ''} pot building. Think pot control — as Sklansky teaches, medium hands want medium pots. Don't bloat it without a plan.`;
+  if (score >= 1_000_000) return `One pair — solid but vulnerable. ${pot > 100 ? 'The pot is getting big.' : ''} Count the overcards on board. As Polk says: 'One pair is a one-street value hand on most boards.'`;
+  return "Not much here. Do you have draw equity? Count your outs and calculate — you need pot odds to justify continuing. Sometimes the best play is a well-timed fold.";
 }
 
 // ---------------------------------------------------------------------------

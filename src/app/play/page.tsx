@@ -10,20 +10,23 @@ import {
   Brain,
   ChevronDown,
   Info,
+  Trophy,
+  Crown,
 } from 'lucide-react';
 
 /* ─────────────────────────────────────────────────────────────
    TYPES
    ───────────────────────────────────────────────────────────── */
 
-type PlayMode = 'play-vs-coach' | 'coach-watches' | 'gto-trainer';
+type PlayMode = 'play-vs-coach' | 'coach-watches' | 'gto-trainer' | 'tournament';
 type TableSize = 'heads-up' | '6-max' | '9-max';
 type Variant = 'no-limit-holdem' | 'pot-limit-omaha' | 'short-deck';
 
-const MODES: { id: PlayMode; label: string; icon: React.ReactNode; desc: string }[] = [
-  { id: 'play-vs-coach', label: 'Play vs Coach', icon: <Spade className="w-4 h-4" />, desc: 'Andrew deals and coaches every decision' },
-  { id: 'coach-watches', label: 'Coach Watches', icon: <Eye className="w-4 h-4" />, desc: 'Play freely while Andrew observes and advises' },
-  { id: 'gto-trainer', label: 'GTO Trainer', icon: <Brain className="w-4 h-4" />, desc: 'Get real-time GTO accuracy feedback' },
+const MODES: { id: PlayMode; label: string; icon: React.ReactNode; desc: string; pro?: boolean }[] = [
+  { id: 'play-vs-coach', label: 'Play vs Coach', icon: <Spade className="w-4 h-4" />, desc: 'Andrew coaches every decision in real-time — full GTO guidance' },
+  { id: 'coach-watches', label: 'Test Yourself', icon: <Eye className="w-4 h-4" />, desc: 'Play without coaching, then get a full hand review — like real tournament conditions' },
+  { id: 'gto-trainer', label: 'GTO Trainer', icon: <Brain className="w-4 h-4" />, desc: 'Every decision scored 0-100 for GTO accuracy — train your brain to think like a solver' },
+  { id: 'tournament', label: 'Tournament', icon: <Trophy className="w-4 h-4" />, desc: 'Multi-table tournament simulation with ICM coaching, blind levels, and final table pressure', pro: true },
 ];
 
 const TABLE_SIZES: { id: TableSize; label: string; seats: number }[] = [
@@ -147,10 +150,10 @@ export default function PlayPage() {
         className="px-4 sm:px-6 pt-6 pb-2 text-center"
       >
         <h1 className="text-3xl sm:text-4xl font-bold font-serif mb-1">
-          Interactive <span className="text-gold-gradient">Poker Table</span>
+          Don&apos;t Train With the Pros. <span className="text-gold-gradient">Train With the Best.</span>
         </h1>
         <p className="text-white/50 text-sm">
-          Choose your mode, pick a game, and let Andrew guide you.
+          Real-time AI GTO coaching. Choose your mode and let Andrew guide every decision.
         </p>
       </motion.div>
 
@@ -161,7 +164,7 @@ export default function PlayPage() {
             <button
               key={m.id}
               onClick={() => setMode(m.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer relative ${
                 mode === m.id
                   ? 'bg-gold/15 text-gold border border-gold/30'
                   : 'bg-white/5 text-white/50 border border-white/5 hover:bg-white/10 hover:text-white/70'
@@ -169,6 +172,11 @@ export default function PlayPage() {
             >
               {m.icon}
               {m.label}
+              {m.pro && (
+                <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-gold/20 text-gold border border-gold/30 font-bold uppercase tracking-wider">
+                  Pro
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -257,7 +265,7 @@ export default function PlayPage() {
       <div className="flex-1 px-2 sm:px-6 pb-4 flex items-center justify-center min-h-[400px]">
         {PokerTableComponent ? (
           <PokerTableComponent
-            mode={mode === 'play-vs-coach' ? 'play' : mode === 'coach-watches' ? 'watch' : 'gto'}
+            mode={mode === 'play-vs-coach' ? 'play' : mode === 'coach-watches' ? 'watch' : mode === 'tournament' ? 'play' : 'gto'}
             variant={variant}
             tableSize={TABLE_SIZES.find((t) => t.id === tableSize)?.seats ?? 6}
           />

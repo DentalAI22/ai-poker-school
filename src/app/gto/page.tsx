@@ -30,7 +30,7 @@ import type { Action, GTOChart, HandAction } from '@/data/gto-charts';
    TYPES & CONSTANTS
    ───────────────────────────────────────────────────────────── */
 
-type Tab = 'study' | 'quiz';
+type Tab = 'study' | 'quiz' | 'shortstack' | 'icm';
 type TableSize = '6max' | '9max';
 type Scenario = 'open' | 'vs_raise' | 'vs_3bet';
 
@@ -550,6 +550,235 @@ function QuizMeTab() {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   SHORT STACK PUSH/FOLD TAB
+   ───────────────────────────────────────────────────────────── */
+
+function ShortStackTab() {
+  const [bbCount, setBbCount] = useState(10);
+  const [position, setPosition] = useState('BTN');
+
+  const BB_OPTIONS = [5, 8, 10, 12, 15, 20];
+  const positions = ['UTG', 'HJ', 'CO', 'BTN', 'SB'];
+
+  // Push/fold ranges based on stack depth and position
+  const getRange = (bb: number, pos: string): { push: string[]; fold: string[] } => {
+    const allPairs = ['AA', 'KK', 'QQ', 'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22'];
+    const broadwaySuited = ['AKs', 'AQs', 'AJs', 'ATs', 'KQs', 'KJs', 'KTs', 'QJs', 'QTs', 'JTs'];
+    const broadwayOff = ['AKo', 'AQo', 'AJo', 'ATo', 'KQo', 'KJo', 'QJo'];
+    const acesSuited = ['A9s', 'A8s', 'A7s', 'A6s', 'A5s', 'A4s', 'A3s', 'A2s'];
+    const connectors = ['T9s', '98s', '87s', '76s', '65s', '54s'];
+
+    // Tighter with more BBs and earlier position
+    const posMultiplier = pos === 'BTN' ? 1 : pos === 'CO' ? 0.85 : pos === 'HJ' ? 0.7 : pos === 'SB' ? 0.95 : 0.55;
+    const bbMultiplier = bb <= 5 ? 1 : bb <= 10 ? 0.8 : bb <= 15 ? 0.6 : 0.4;
+    const openness = posMultiplier * bbMultiplier;
+
+    const push: string[] = [];
+    push.push(...allPairs.slice(0, Math.ceil(allPairs.length * Math.min(1, openness + 0.4))));
+    push.push(...broadwaySuited.slice(0, Math.ceil(broadwaySuited.length * Math.min(1, openness + 0.3))));
+    push.push(...broadwayOff.slice(0, Math.ceil(broadwayOff.length * openness)));
+    if (openness > 0.5) push.push(...acesSuited.slice(0, Math.ceil(acesSuited.length * openness)));
+    if (openness > 0.7) push.push(...connectors.slice(0, Math.ceil(connectors.length * (openness - 0.3))));
+
+    return { push, fold: [] };
+  };
+
+  const range = getRange(bbCount, position);
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="card-gold-border p-6">
+        <h3 className="text-lg font-bold text-gold mb-2">Push/Fold Strategy</h3>
+        <p className="text-sm text-white/50 mb-4">
+          When your stack is short (&lt;20BB), GTO simplifies to push-or-fold. These ranges tell you
+          when to shove all-in. As Doug Polk says: &quot;Short stack poker is solved. Just follow the charts.&quot;
+        </p>
+
+        {/* BB Selector */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <span className="text-xs text-white/30">Stack Size:</span>
+          {BB_OPTIONS.map((bb) => (
+            <button
+              key={bb}
+              onClick={() => setBbCount(bb)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                bbCount === bb
+                  ? 'bg-gold/15 text-gold border border-gold/30'
+                  : 'bg-white/5 text-white/40 border border-white/5 hover:text-white/60'
+              }`}
+            >
+              {bb}BB
+            </button>
+          ))}
+        </div>
+
+        {/* Position Selector */}
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          <span className="text-xs text-white/30">Position:</span>
+          {positions.map((pos) => (
+            <button
+              key={pos}
+              onClick={() => setPosition(pos)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                position === pos
+                  ? 'bg-felt text-white'
+                  : 'bg-white/5 text-white/40 hover:text-white/60'
+              }`}
+            >
+              {pos}
+            </button>
+          ))}
+        </div>
+
+        {/* Range Display */}
+        <div className="bg-white/5 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-bold text-white">Push Range ({position} with {bbCount}BB)</span>
+            <span className="text-xs text-gold font-bold">{range.push.length} hands</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {range.push.map((hand) => (
+              <span
+                key={hand}
+                className="px-2 py-1 rounded text-xs font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/20"
+              >
+                {hand}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-white/30 mt-3">
+            All other hands: FOLD. No limping, no min-raising. Push or fold only.
+          </p>
+        </div>
+      </div>
+
+      <div className="card-gold-border p-4">
+        <p className="text-xs text-white/40 leading-relaxed">
+          <span className="text-gold font-bold">Pro Tip:</span> Stu Ungar was the master of short-stack play.
+          In his legendary 1997 WSOP Main Event comeback, he navigated short stacks with perfect aggression.
+          The difference? He did it by instinct. You have the actual math. Use it.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ICM REFERENCE TAB
+   ───────────────────────────────────────────────────────────── */
+
+function ICMTab() {
+  const [scenario, setScenario] = useState<'bubble' | 'final_table' | 'pay_jump'>('bubble');
+
+  const scenarios = {
+    bubble: {
+      title: 'Bubble Play',
+      description: 'When one more elimination means everyone makes the money.',
+      adjustments: [
+        { hand: 'Medium Pairs (77-TT)', standard: 'Open/3-bet', icm: 'Tighten significantly — fold vs short stack shoves', impact: 'high' },
+        { hand: 'AJo-AQo', standard: 'Standard open', icm: 'Be cautious of calling all-ins — your tournament life > a marginal spot', impact: 'high' },
+        { hand: 'Big Pairs (QQ+)', standard: 'Always play', icm: 'Still play but consider flatting vs chip leader to avoid bust', impact: 'medium' },
+        { hand: 'Suited Connectors', standard: 'Position-dependent open', icm: 'FOLD unless you have a massive stack — survival > chip accumulation', impact: 'high' },
+        { hand: 'Small Pairs (22-66)', standard: 'Set-mine', icm: 'Fold in most spots — the risk/reward is wrong near the bubble', impact: 'high' },
+      ],
+      coachNote: "On the bubble, tight is RIGHT. The short stacks are sweating — let them bust. As Harrington teaches: 'ICM means a chip lost is worth more than a chip gained.'",
+    },
+    final_table: {
+      title: 'Final Table Dynamics',
+      description: 'Pay jumps are huge. Every elimination matters exponentially.',
+      adjustments: [
+        { hand: 'Any Hand (Big Stack)', standard: 'Normal ranges', icm: 'ATTACK medium stacks relentlessly — they can\'t afford to bust', impact: 'high' },
+        { hand: 'Any Hand (Medium Stack)', standard: 'Normal ranges', icm: 'Play TIGHT. Let small stacks bust. Ladder into bigger pay jumps', impact: 'high' },
+        { hand: 'Any Hand (Short Stack)', standard: 'Push/fold', icm: 'Push wider than normal — you need chips, and medium stacks will fold to you', impact: 'high' },
+        { hand: 'Heads-Up (Final 2)', standard: 'GTO ranges', icm: 'ICM barely matters — play for the WIN. Standard HU ranges apply', impact: 'low' },
+      ],
+      coachNote: "Final table = different game entirely. Fedor Holz dominated final tables by understanding ICM pressure better than anyone. The big stack is a WEAPON — use it.",
+    },
+    pay_jump: {
+      title: 'Pay Jump Spots',
+      description: 'When the next elimination means a significant payout increase.',
+      adjustments: [
+        { hand: 'Marginal Hands', standard: 'Play normally', icm: 'FOLD anything marginal. A $10K pay jump > a small pot', impact: 'high' },
+        { hand: 'Premium Hands', standard: 'Build pot', icm: 'Still play but consider the tournament equity — is doubling up worth the risk of busting?', impact: 'medium' },
+        { hand: 'Steal Attempts', standard: 'Position-based', icm: 'Target players who understand ICM — they\'ll fold more. Avoid calling stations.', impact: 'medium' },
+      ],
+      coachNote: "Every major pay jump changes the math. A $50K first-place vs $30K second-place? That $20K difference means you should be more aggressive heads-up but tighter 3-handed.",
+    },
+  };
+
+  const current = scenarios[scenario];
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Scenario Tabs */}
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {([
+          { id: 'bubble' as const, label: 'Bubble Play' },
+          { id: 'final_table' as const, label: 'Final Table' },
+          { id: 'pay_jump' as const, label: 'Pay Jumps' },
+        ]).map((sc) => (
+          <button
+            key={sc.id}
+            onClick={() => setScenario(sc.id)}
+            className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+              scenario === sc.id
+                ? 'bg-gold/15 text-gold border border-gold/30'
+                : 'bg-white/5 text-white/50 border border-white/5 hover:bg-white/10'
+            }`}
+          >
+            {sc.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Current Scenario */}
+      <div className="card-gold-border p-6">
+        <h3 className="text-lg font-bold text-gold mb-1">{current.title}</h3>
+        <p className="text-sm text-white/50 mb-6">{current.description}</p>
+
+        <div className="space-y-3">
+          {current.adjustments.map((adj, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="bg-white/5 rounded-lg p-4"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold text-white">{adj.hand}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                  adj.impact === 'high' ? 'bg-red-500/15 text-red-400' : 'bg-gold/15 text-gold'
+                }`}>
+                  {adj.impact} ICM impact
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-white/30">Standard GTO:</span>
+                  <p className="text-white/60 mt-0.5">{adj.standard}</p>
+                </div>
+                <div>
+                  <span className="text-gold/60">ICM Adjusted:</span>
+                  <p className="text-gold/80 mt-0.5 font-medium">{adj.icm}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Coach Note */}
+      <div className="card-gold-border p-4">
+        <p className="text-xs text-white/50 leading-relaxed">
+          <span className="text-gold font-bold">Coach Andrew:</span> {current.coachNote}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
    MAIN PAGE
    ───────────────────────────────────────────────────────────── */
 
@@ -578,29 +807,26 @@ export default function GTOPage() {
       </motion.div>
 
       {/* ── Tab Switcher ── */}
-      <div className="flex justify-center gap-2 mb-10">
-        <button
-          onClick={() => setTab('study')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-            tab === 'study'
-              ? 'bg-gold/15 text-gold border border-gold/30'
-              : 'bg-white/5 text-white/50 border border-white/5 hover:bg-white/10'
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          Study Charts
-        </button>
-        <button
-          onClick={() => setTab('quiz')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-            tab === 'quiz'
-              ? 'bg-gold/15 text-gold border border-gold/30'
-              : 'bg-white/5 text-white/50 border border-white/5 hover:bg-white/10'
-          }`}
-        >
-          <Trophy className="w-4 h-4" />
-          Quiz Me
-        </button>
+      <div className="flex justify-center gap-2 mb-10 flex-wrap">
+        {([
+          { id: 'study' as Tab, label: 'Study Charts', icon: <BookOpen className="w-4 h-4" /> },
+          { id: 'quiz' as Tab, label: 'Quiz Me', icon: <Trophy className="w-4 h-4" /> },
+          { id: 'shortstack' as Tab, label: 'Push/Fold', icon: <Zap className="w-4 h-4" /> },
+          { id: 'icm' as Tab, label: 'ICM Guide', icon: <BarChart3 className="w-4 h-4" /> },
+        ]).map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+              tab === t.id
+                ? 'bg-gold/15 text-gold border border-gold/30'
+                : 'bg-white/5 text-white/50 border border-white/5 hover:bg-white/10'
+            }`}
+          >
+            {t.icon}
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {/* ── Tab Content ── */}
@@ -612,7 +838,10 @@ export default function GTOPage() {
           exit={{ opacity: 0, y: -15 }}
           transition={{ duration: 0.3 }}
         >
-          {tab === 'study' ? <StudyChartTab /> : <QuizMeTab />}
+          {tab === 'study' && <StudyChartTab />}
+          {tab === 'quiz' && <QuizMeTab />}
+          {tab === 'shortstack' && <ShortStackTab />}
+          {tab === 'icm' && <ICMTab />}
         </motion.div>
       </AnimatePresence>
     </div>

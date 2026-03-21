@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Crown,
@@ -64,6 +65,30 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 
 export default function PricingPage() {
   const [isYearly, setIsYearly] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleGoPro = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: isYearly ? 'yearly' : 'monthly' }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        // Stripe not yet configured — show coming soon
+        alert(data.error || 'Pro subscriptions launching soon! Stay tuned.');
+      }
+    } catch {
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [isYearly, router]);
 
   const freeFeatures = [
     { icon: <MessageCircle className="w-4 h-4" />, text: 'Chat with Andrew (3 messages/day)' },
@@ -250,12 +275,13 @@ export default function PricingPage() {
             ))}
           </ul>
 
-          <Link
-            href="#"
-            className="btn-gold text-center text-base py-3.5 rounded-xl w-full block animate-pulse-gold"
+          <button
+            onClick={handleGoPro}
+            disabled={loading}
+            className="btn-gold text-center text-base py-3.5 rounded-xl w-full block animate-pulse-gold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            Go Pro
-          </Link>
+            {loading ? 'Loading...' : 'Go Pro'}
+          </button>
         </motion.div>
       </div>
 
