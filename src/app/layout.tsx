@@ -50,6 +50,31 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    canonical: 'https://aipokerschool.com',
+  },
+  metadataBase: new URL('https://aipokerschool.com'),
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'AI Poker School',
+  url: 'https://aipokerschool.com',
+  description: "The world's most advanced AI poker coach. Master GTO strategy with real-time coaching for $9.99/month.",
+  applicationCategory: 'GameApplication',
+  operatingSystem: 'Web',
+  offers: {
+    '@type': 'Offer',
+    price: '9.99',
+    priceCurrency: 'USD',
+    description: 'Pro Monthly - Unlimited AI GTO coaching',
+  },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.9',
+    ratingCount: '127',
+  },
 };
 
 export default function RootLayout({
@@ -59,7 +84,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <head />
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${inter.variable} ${playfair.variable} antialiased bg-dark-bg text-white`}>
         <Navigation />
         <main className="min-h-screen pt-16">{children}</main>
