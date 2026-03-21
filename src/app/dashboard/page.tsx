@@ -20,9 +20,11 @@ import {
   Target,
   History,
   ChevronRight,
+  Crown,
 } from 'lucide-react';
 import CoachAvatar from '@/components/coach/CoachAvatar';
 import ProgressBar from '@/components/ui/ProgressBar';
+import { useAuth } from '@/lib/auth-context';
 
 /* ─────────────────────────────────────────────────────────────
    STAT CARD
@@ -207,6 +209,15 @@ function EmptyState({
 
 export default function DashboardPage() {
   const [showTournamentModal, setShowTournamentModal] = useState(false);
+  const { user, profile, isPro, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
@@ -220,32 +231,30 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3 mb-2">
           <LayoutDashboard className="w-6 h-6 text-gold" />
           <h1 className="text-3xl sm:text-4xl font-bold font-serif">
-            Your <span className="text-gold-gradient">Dashboard</span>
+            {profile?.display_name ? (
+              <>Welcome back, <span className="text-gold-gradient">{profile.display_name.split(' ')[0]}</span></>
+            ) : (
+              <>Your <span className="text-gold-gradient">Dashboard</span></>
+            )}
           </h1>
         </div>
-        <p className="text-white/40 text-sm">
-          Track your progress, identify leaks, and level up your game.
-        </p>
-      </motion.div>
-
-      {/* ── Sign-in Banner ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="mb-8 px-5 py-4 rounded-xl bg-gold/5 border border-gold/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
-      >
         <div className="flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-gold shrink-0" />
-          <p className="text-sm text-white/60">
-            <span className="font-semibold text-white">Sign in to track your progress.</span>{' '}
-            Your stats and hand history will be saved across sessions.
+          <p className="text-white/40 text-sm">
+            Track your progress, identify leaks, and level up your game.
           </p>
+          {isPro ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold/15 text-xs font-bold text-gold">
+              <Crown className="w-3 h-3" /> Pro
+            </span>
+          ) : (
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold/10 text-xs font-bold text-gold hover:bg-gold/20 transition-all"
+            >
+              <Crown className="w-3 h-3" /> Upgrade
+            </Link>
+          )}
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gold/15 text-gold text-sm font-semibold hover:bg-gold/25 transition-all cursor-pointer shrink-0">
-          <LogIn className="w-4 h-4" />
-          Sign In
-        </button>
       </motion.div>
 
       {/* ── Stats Overview ── */}
@@ -253,24 +262,24 @@ export default function DashboardPage() {
         <StatCard
           icon={<Spade className="w-5 h-5 text-gold" />}
           label="Hands Played"
-          value="0"
+          value={String(profile?.hands_played || 0)}
         />
         <StatCard
           icon={<BarChart3 className="w-5 h-5 text-blue-400" />}
           label="GTO Accuracy"
-          value="0%"
-          color="text-white/30"
+          value={profile?.gto_accuracy_score ? `${Math.round(Number(profile.gto_accuracy_score))}%` : '0%'}
+          color={profile?.gto_accuracy_score ? 'text-blue-400' : 'text-white/30'}
         />
         <StatCard
           icon={<MessageCircle className="w-5 h-5 text-green-400" />}
           label="Sessions with Andrew"
-          value="0"
+          value={String(profile?.coaching_sessions || 0)}
         />
         <StatCard
           icon={<Flame className="w-5 h-5 text-orange-400" />}
           label="Current Streak"
-          value="0 days"
-          color="text-white/30"
+          value={`${profile?.streak_days || 0} days`}
+          color={profile?.streak_days ? 'text-orange-400' : 'text-white/30'}
         />
       </div>
 

@@ -1,8 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
+import { createServerClient } from '@/lib/supabase';
 import Stripe from 'stripe';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+async function updateUserSubscription(
+  email: string | null,
+  stripeCustomerId: string,
+  tier: string,
+  expiresAt: Date | null
+) {
+  if (!email) return;
+  const supabase = createServerClient();
+
+  // Find user by email
+  const { data: user } = await supabase
+    .from('poker_users')
+    .select('id')
+    .eq('email', email)
+    .single();
+
+  if (user) {
+    await supabase
+      .from('poker_users')
+      .update({
+        subscription_tier: tier,
+        subscription_expires_at: expiresAt?.toISOString() || null,
+        stripe_customer_id: stripeCustomerId,
+      })
+      .eq('id', user.id);
+  }
+}
 
 export async function POST(req: NextRequest) {
   const stripe = getStripe();
@@ -31,8 +60,21 @@ export async function POST(req: NextRequest) {
           email: session.customer_email,
           subscription: session.subscription,
         });
-        // TODO: Update user subscription tier in Supabase
-        // await updateUserSubscription(session.customer_email, 'pro');
+
+        // Get subscription details for expiry date
+        let expiresAt: Date | null = null;
+        if (session.subscription) {
+          const subResponse = await stripe.subscriptions.retrieve(session.subscription as string);
+          const sub = subResponse as unknown as { current_period_end: number };
+          expiresAt = new Date(sub.current_period_end * 1000);
+        }
+
+        await updateUserSubscription(
+          session.customer_email || session.customer_details?.email || null,
+          session.customer as string,
+          'pro',
+          expiresAt
+        );
         break;
       }
 
@@ -42,7 +84,21 @@ export async function POST(req: NextRequest) {
           customer: subscription.customer,
           status: subscription.status,
         });
-        // TODO: Update subscription status in Supabase
+
+        // Get customer email
+        const customerResponse = await stripe.customers.retrieve(subscription.customer as string);
+        const customer = customerResponse as unknown as { deleted?: boolean; email: string | null };
+        if (customer && !customer.deleted) {
+          const sub = subscription as unknown as { status: string; current_period_end: number; customer: string };
+          const tier = sub.status === 'active' ? 'pro' : 'free';
+          const expiresAt = new Date(sub.current_period_end * 1000);
+          await updateUserSubscription(
+            customer.email,
+            sub.customer as string,
+            tier,
+            expiresAt
+          );
+        }
         break;
       }
 
@@ -51,8 +107,17 @@ export async function POST(req: NextRequest) {
         console.log('❌ Subscription canceled:', {
           customer: subscription.customer,
         });
-        // TODO: Downgrade user to free tier in Supabase
-        // await updateUserSubscription(customerId, 'free');
+
+        const delCustomerResponse = await stripe.customers.retrieve(subscription.customer as string);
+        const delCustomer = delCustomerResponse as unknown as { deleted?: boolean; email: string | null };
+        if (delCustomer && !delCustomer.deleted) {
+          await updateUserSubscription(
+            delCustomer.email,
+            subscription.customer as string,
+            'free',
+            null
+          );
+        }
         break;
       }
 
@@ -62,7 +127,6 @@ export async function POST(req: NextRequest) {
           customer: invoice.customer,
           amount: invoice.amount_due,
         });
-        // TODO: Notify user of failed payment
         break;
       }
 
