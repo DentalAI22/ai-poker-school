@@ -215,6 +215,25 @@ export default function PokerTable({ mode: initialMode = 'play', tableSize = 6 }
         ))}
       </div>
 
+      {/* GTO Chart Toggle Button */}
+      <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 30 }}>
+        <button
+          onClick={() => setShowGTOChart(!showGTOChart)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '6px 14px', borderRadius: 8,
+            background: showGTOChart ? 'rgba(212,168,67,0.2)' : 'rgba(255,255,255,0.06)',
+            border: showGTOChart ? '1px solid rgba(212,168,67,0.4)' : '1px solid rgba(255,255,255,0.1)',
+            color: showGTOChart ? '#d4a843' : '#94a3b8',
+            fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          title="GTO Chart — toggle to practice blind"
+        >
+          📊 GTO Chart
+        </button>
+      </div>
+
       {/* Table container */}
       <div style={{ position: 'relative', width: '100%', paddingBottom: '60%', borderRadius: '50%', overflow: 'visible' }}>
         {/* Wooden rail */}

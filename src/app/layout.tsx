@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Inter, Playfair_Display } from 'next/font/google';
 import Navigation from '@/components/ui/Navigation';
 import Footer from '@/components/ui/Footer';
@@ -59,6 +60,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        {process.env.NEXT_PUBLIC_ADSENSE_PUB_ID && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_PUB_ID}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
+      </head>
       <body className={`${inter.variable} ${playfair.variable} antialiased bg-dark-bg text-white`}>
         <Navigation />
         <main className="min-h-screen pt-16">{children}</main>

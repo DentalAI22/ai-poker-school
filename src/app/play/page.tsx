@@ -127,7 +127,7 @@ export default function PlayPage() {
   let PokerTableComponent: React.ComponentType<{
     mode: string;
     variant: string;
-    tableSize: string;
+    tableSize: number;
   }> | null = null;
 
   try {
@@ -256,7 +256,11 @@ export default function PlayPage() {
       {/* ── Poker Table Area ── */}
       <div className="flex-1 px-2 sm:px-6 pb-4 flex items-center justify-center min-h-[400px]">
         {PokerTableComponent ? (
-          <PokerTableComponent mode={mode} variant={variant} tableSize={tableSize} />
+          <PokerTableComponent
+            mode={mode === 'play-vs-coach' ? 'play' : mode === 'coach-watches' ? 'watch' : 'gto'}
+            variant={variant}
+            tableSize={TABLE_SIZES.find((t) => t.id === tableSize)?.seats ?? 6}
+          />
         ) : (
           <PlaceholderTable mode={mode} variant={variant} tableSize={tableSize} />
         )}

@@ -105,7 +105,7 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 overflow-x-hidden">
       {/* ── Header ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -152,8 +152,8 @@ export default function PricingPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
         {/* FREE Card */}
         <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
           className="rounded-2xl border border-white/10 bg-card-bg p-8 flex flex-col"
@@ -185,8 +185,8 @@ export default function PricingPage() {
 
         {/* PRO Card */}
         <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
           className="relative rounded-2xl border-2 border-gold/50 bg-card-bg p-8 flex flex-col overflow-hidden"

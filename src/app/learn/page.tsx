@@ -346,15 +346,15 @@ export default function LearnPage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {filtered.map((variant, i) => (
             <motion.div
               key={variant.slug}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
+              transition={{ duration: 0.3, delay: Math.min(i * 0.03, 0.5) }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="card-gold-border p-6 flex flex-col gap-3 group"
+              className="card-gold-border p-5 flex flex-col gap-3 group overflow-visible"
             >
               {/* Badges */}
               <div className="flex items-center gap-2 flex-wrap">
